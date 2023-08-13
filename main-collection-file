@@ -1,0 +1,154 @@
+<link rel="stylesheet" href="{{ 'collection.css' | asset_url }}">
+<script src="{{ 'collection.js' | asset_url }}" defer="defer"></script>
+{% style %}
+  .padding-{{ section.id }} {
+    padding-top: {{ section.settings.padding_top | divided_by: 2  }}px;
+    padding-bottom: {{ section.settings.padding_bottom | divided_by: 2 }}px;
+  }
+{% endstyle %}
+
+{% assign product_limit = section.settings.product_per_page %}
+{% paginate collection.products by product_limit %}
+  <div class="page-width main-collection">
+    <div class="main-collection__container" id="ProductGridContainer">
+      {%- if collection.products.size == 0 -%}
+        <div class="main-collection__empty">No products found</div>
+      {%- else -%}
+        <aside class="main-collection__filters" id="CollectionFilters">
+          <div class="collection-filters__overlay"></div>
+          {% render 'collection-filter', section: section, collection: collection %}
+        </aside>
+
+        <div class="main-collection__products">
+          <!--
+            <div class="collection-toolbar">
+                  <div class="collection-toolbar__count">
+                    Showing {{ collection.products_count }} of {{ collection.all_products_count }}
+                    {{ collection.all_products_count | pluralize: 'product', 'products' }}
+            </div>
+              </div>
+          -->
+          <collection-filters>
+            <details class="collection-filters__sort__filter">
+              <summary class="collection-filters__title">
+                Sort
+                <svg
+                  aria-hidden="true"
+                  focusable="false"
+                  role="presentation"
+                  class="icon icon-caret"
+                  viewBox="0 0 10 6"
+                >
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M9.354.646a.5.5 0 00-.708 0L5 4.293 1.354.646a.5.5 0 00-.708.708l4 4a.5.5 0 00.708 0l4-4a.5.5 0 000-.708z" fill="currentColor"></path>
+                </svg>
+              </summary>
+              <div class="collection-filters__sorting">
+                <ul class="collection-filters__list" role="list">
+                  {%- for option in collection.sort_options -%}
+                    <li class="collection-filters__listitem">
+                      <label
+                        for="Sort-{{ option.value | escape }}-{{ forloop.index }}"
+                        class="collection-filters__checkbox{% if option.value == sort_by %} collection-filters__checkbox--checked{% endif %}"
+                      >
+                        <input
+                          type="radio"
+                          name="sort_by"
+                          value="{{ option.value | escape }}"
+                          id="Sort-{{ option.value | escape }}-{{ forloop.index }}"
+                          {% if option.value == sort_by %}
+                            checked
+                          {% endif %}
+                        >
+
+                        <svg width="1.6rem" height="1.6rem" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                          <rect width="16" height="16" stroke="currentColor" fill="none" stroke-width="1"></rect>
+                        </svg>
+
+                        <svg
+                          class="icon icon-checkmark"
+                          width="1.1rem"
+                          height="0.7rem"
+                          viewBox="0 0 11 7"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M1.5 3.5L2.83333 4.75L4.16667 6L9.5 1" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+
+                        <span aria-hidden="true">{{ option.name | escape }}</span>
+                      </label>
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              </div>
+            </details>
+          </collection-filters>
+          <div class="product__collections">
+            <ul
+              id="ProductGrid"
+              data-id="{{ section.id }}"
+              class="grid product-grid grid--2-col grid--4-col-desktop"
+            >
+              {%- for product in collection.products -%}
+                <li class="grid__item">
+                  <!-- {{ forloop.index }}. {{ product.title }} -->
+                  {% render 'product-list-snippet', product: product %}
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        </div>
+
+        {%- if paginate.pages > 1 -%}
+          {{ paginate | default_pagination }}
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+
+    <collection-sticky-button class="medium-hide large-up-hide">
+      <button type="button" class="collection-sticky-button">Filters and Sorting</button>
+    </collection-sticky-button>
+  </div>
+{% endpaginate %}
+
+{% schema %}
+{
+  "name": "Collection products",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "range",
+      "id": "product_per_page",
+      "label": "Product per page",
+      "min": 4,
+      "max": 48,
+      "step": 1,
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+      },
+      {
+        "type": "range",
+        "id": "padding_top",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "px",
+        "label": "Padding top",
+        "default": 40
+      },
+      {
+        "type": "range",
+        "id": "padding_bottom",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "px",
+        "label": "Padding bottom",
+        "default": 40
+      }
+  ]
+}
+{% endschema %}
