@@ -1,0 +1,120 @@
+{% style %}
+      .card_container{
+        text-align:center;
+        position:relative;
+      }
+      .card_container a{
+        text-decoration:none;
+        color:black;
+      }
+      .img_quick {
+        position: relative;
+      }
+      .primary_image {
+        display: block;
+        height: 100%;
+        width: 100%;
+        opacity: 1;
+        content-fit: cover;
+      }
+      .hover_image {
+        display: none;
+        height: 100%;
+        width: 100%;
+        opacity: 0;
+        content-fit: cover;
+      }
+      .quick_view {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: ease 0.6s;
+        background: rgba(0,0,0,0);
+        z-index: 10;
+      }
+        .product_title ,  .product_price{
+          font-family: "DM Sans","sans-serif";
+          font-size: 19.55px;
+          font-style: normal;
+          font-weight:400;
+          text-decoration-color: rgb(0, 0, 0);
+        -webkit-font-smoothing: antialiased;
+        text-shadow: 1px 1px 1px rgba(0,0,0,.19);
+          text-rendering: optimizeLegibility;
+        }
+
+    .badge{
+        background: #11c4a3;
+        color: white;
+        padding:6px 8px;
+        font-size: 13px;
+
+    }
+
+    .product__badge{
+          position: absolute;
+          top: 2px;
+          left:4px;
+
+    }
+
+  .card_content{
+    padding:20px 0;
+    overflow:hidden;
+  }
+      @media screen and (min-width:750px) {
+      .img_quick:hover .primary_image {
+        display: none;
+        opacity: 0;
+      }
+      .img_quick:hover .quick_view {
+        opacity: 1;
+      }
+      .img_quick:hover .hover_image {
+        display: block;
+        opacity: 1;
+      }
+       .img_quick:hover ~ .product__badge {
+        display: none;
+        opacity: 0;
+
+      }
+      }
+{% endstyle %}
+<div class="card_container">
+  <a href="{{ product.url }}">
+    <div class="card_image media media--square img_quick">
+      <div class="hover_image">
+        {% render 'image', desktopSrc: product.images[1] %}
+      </div>
+      <div class="primary_image">
+        {% render 'image', desktopSrc: product.featured_image %}
+      </div>
+      <div class="quick_view">
+        <div href="{{product.url }}" class="button button--primary">QUICK VIEW</div>
+      </div>
+    </div>
+    <div class="product__badge ">
+      {% if product.tags != blank %}
+        {% for tag in product.tags %}
+          {% if tag contains 'SAVE' %}
+            {% assign text = tag | split: '__' | last %}
+            <span class="badge">
+              {{ text }}
+            </span>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div class="card_content">
+      <!-- <div class="product_vendor">{{ product.vendor }}</div> -->
+      <div class="product_title">{{ product.title }}</div>
+      <div class="product_price">
+        {{ product.price | money }}
+        <span style="text-decoration: line-through">{{ product.compare_at_price | money }}</span>
+      </div>
+    </div>
+  </a>
+</div>
