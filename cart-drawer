@@ -1,0 +1,239 @@
+<div class="wizaah-drawer is--open" tabindex="-1">
+  <div class="wizaah-drawer__overlay"></div>
+  <wizaah-cart class="wizaah-cart" data-url="{{ routes.cart_url }}" data-section="{{ section.id }}">
+    <div class="wizaah-cart__header">
+      <div class="h3">
+        Shopping cart
+        <!--
+          {% if cart.item_count > 0 -%}
+            ({{ cart.item_count }}
+            {{ cart.item_count | pluralize: 'item', 'items' }})
+          {%- endif %}
+        -->
+      </div>
+      <button type="button" class="wizaah-cart__close">
+        {% render 'icon' with 'close' %}
+      </button>
+    </div>
+
+    {% if cart.empty? %}
+      <div class="wizaah-cart__empty">
+        <div class="h4">Your cart looks little empty!</div>
+        {% render 'wizaah-empty-cart-upsell', section: section %}
+      </div>
+    {% else %}
+      <div class="wizaah-cart_content grid grid--1-col grid--2-col-desktop">
+        <div class="grid__item product-content">
+          <form action="{{ routes.cart_url }}" id="WizaahCartForm" method="post">
+            <div class="wizaah-cart__items">
+              {% for item in cart.items %}
+                <div class="wizaah-cartitem" data-item-key="{{ item.key }}">
+                  <div class="wizaah-cartitem__media">
+                    <a href="{{ item.url }}" class="wizaah-cartitem__link">
+                      <img
+                        class="wizaah-cartitem__image"
+                        src="{{ item.image | image_url: width: 300 }}"
+                        alt="{{ item.image.alt | escape }}"
+                        loading="lazy"
+                        width="150"
+                        height="{{ 150 | divided_by: item.image.aspect_ratio | ceil }}"
+                      >
+                    </a>
+                  </div>
+                  <div class="wizaah-cartitem__content">
+                    <div class="wizaah-cartitem__header">
+                      <div class="wizaah-cartitem__meta">
+                        <a href="{{ item.url }}" class="wizaah-cartitem__title h4">{{ item.product.title | escape }}</a>
+
+                        <div class="variant">
+                          {%- unless item.product.has_only_default_variant -%}
+                            <sharath-cart-item-variant class="wizaah-cartitem__options">
+                              <select data-item-key="{{ item.key }}">
+                                {% for variant in item.product.variants %}
+                                  <option
+                                    value="{{ variant.id }}"
+                                    {% if variant.id == item.id %}
+                                      selected
+                                    {% endif %}
+                                  >
+                                    {{ variant.title }}
+                                  </option>
+                                {% endfor %}
+                              </select>
+                              <script type="application/json">
+                                {{ item.product.variants | json }}
+                              </script>
+                            </sharath-cart-item-variant>
+                          {%- endunless -%}
+                        </div>
+                        {% if item.properties.size > 0 %}
+                          {%- for property in item.properties -%}
+                            {%- assign property_first_char = property.first | slice: 0 -%}
+                            {%- if property.last != blank and property_first_char != '_' -%}
+                              <div class="wizaah-cartitem__property">
+                                <span>{{ property.first }}: {{ property.last }}</span>
+                              </div>
+                            {%- endif -%}
+                          {%- endfor -%}
+                        {% endif %}
+                      </div>
+                      <div class="icon">
+                        <wizaah-cart-item-remove class="wizaah-cartitem__remove" data-item-key="{{ item.key }}">
+                          Remove
+                          {% render 'icon' with 'remove' %}
+                        </wizaah-cart-item-remove>
+                      </div>
+                    </div>
+
+                    <div class="wizaah-cartitem__actions">
+                      <wizaah-cart-quantity class="wizaah-cart__quantity" data-item-key="{{ item.key }}">
+                        <button type="button" name="minus" class="wizaah-cart__quantity-button">
+                          {% render 'icon' with 'minus' %}
+                        </button>
+                        <input
+                          class="wizaah-cart__quantity-input"
+                          type="number"
+                          name="updates[]"
+                          value="{{ item.quantity }}"
+                          min="0"
+                        >
+                        <button type="button" name="plus" class="wizaah-cart__quantity-button">
+                          {% render 'icon' with 'plus' %}
+                        </button>
+                      </wizaah-cart-quantity>
+
+                      <div class="wizaah-cartitem__prices right">
+                        {%- if item.original_line_price != item.final_line_price -%}
+                          <div class="wizaah-cartitem__originalprice">
+                            {{ item.original_line_price | money_without_trailing_zeros }}
+                          </div>
+                          <div class="wizaah-cartitem__finalprice">
+                            {{ item.final_line_price | money_without_trailing_zeros }}
+                          </div>
+                        {%- else -%}
+                          <div class="wizaah-cartitem__price">
+                            {{ item.original_line_price | money_without_trailing_zeros }}
+                          </div>
+                        {%- endif -%}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </form>
+        </div>
+
+        <div class=" grid__item shipping_bar">
+          {% render 'wizaah-cart-shipping', section: section, cart: cart %}
+          <div class="wizaah-cart__footer">
+            <details class="wizaah-cart__note">
+              <summary>Add order note {% render 'icon' with 'arrow-down' %}</summary>
+              <wizaah-cart-note>
+                <textarea class="wizaah-cart__notefield" name="note">{{ cart.note }}</textarea>
+              </wizaah-cart-note>
+            </details>
+
+            {% if cart.total_discount > 0 %}
+              <div class="wizaah-cart__subtotal">
+                <div class="h4 wizaah-cart__subtotal--label">Subtotal</div>
+                <div class="wizaah-cart__subtotal--value">
+                  {{ cart.original_total_price | money_without_trailing_zeros }}
+                </div>
+              </div>
+              <div class="wizaah-cart__discount">
+                <div class="h4 wizaah-cart__discount--label">Discount</div>
+                <div class="wizaah-cart__discount--value">{{ cart.total_discount | money_without_trailing_zeros }}</div>
+              </div>
+            {% endif %}
+
+            <div class="wizaah-cart__total">
+              <div class="h4 wizaah-cart__total--label">Total</div>
+              <div class="wizaah-cart__total--value">{{ cart.total_price | money_without_trailing_zeros }}</div>
+            </div>
+
+            <button
+              type="submit"
+              name="checkout"
+              form="WizaahCartForm"
+              class="button button--full-width"
+              id="AjaxcartSubmit"
+            >
+              Checkout
+            </button>
+
+            <div class="wizaah-cart__taxnote center">
+              {%- if cart.taxes_included and shop.shipping_policy.body != blank -%}
+                Tax included. <a href="{{ shop.shipping_policy.url }}">Shipping</a> calculated at checkout.
+              {%- elsif cart.taxes_included -%}
+                Tax included and shipping calculated at checkout
+              {%- elsif shop.shipping_policy.body != blank -%}
+                Taxes and <a href="{{ shop.shipping_policy.url }}">shipping</a> calculated at checkout
+              {%- else -%}
+                Taxes and shipping calculated at checkout
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </wizaah-cart>
+</div>
+
+{% schema %}
+{
+  "name": "Cart drawer",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "free_shipping_bar",
+      "label": "Enable free shipping bar",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "free_shipping_threshold",
+      "label": "Threshold amount",
+      "default": "4000"
+    },
+    {
+      "type": "richtext",
+      "id": "free_shipping_before_message",
+      "label": "Message before reaching threshold",
+      "default": "<p>You are $ away from free shipping!!</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "free_shipping_after_message",
+      "label": "Message after reaching threshold",
+      "default": "<p>Congrats!! You got free shipping</p>"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "empty-cart-upsell",
+      "name": "Empty cart item",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image",
+          "info": "500 x 500px .jpg recommended"
+        },
+        {
+          "type": "url",
+          "id": "image_link",
+          "label": "Image link"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Image heading"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
